@@ -1,35 +1,41 @@
-# บัญชีรายเดือน — Android
+# บัญชีรายเดือน — Android ออฟไลน์ 0.2
 
-แอป Android แบบ hybrid: หน้าจอ HTML/CSS/JavaScript อยู่ใน APK, Google authorization และการเรียก API ทำใน Android โดย token ไม่ส่งเข้า JavaScript ใช้หน้าตาและการคำนวณจากเว็บรุ่น 7
+ข้อมูลรายรับรายจ่าย งบ หนี้ รายการประจำ โปรไฟล์ และรูปแนบอยู่ในเครื่อง ไม่ใช้ Gmail, Google Sheets, Claude หรือเซิร์ฟเวอร์ ไม่มีสิทธิ์ INTERNET ใน APK
 
-## สถานะ
-- ซอร์สและ workflow สำหรับสร้าง APK ทดสอบ; ยังไม่ถือว่าทดสอบบนโทรศัพท์จริงแล้ว
-- ต้องตั้ง Android OAuth client ใน Cloud project เดียวกับ Apps Script และ deploy เป็น API executable ก่อนใช้ข้อมูลจริง
-- ต้องอนุญาต Google บนโทรศัพท์ ไม่มี password หรือ API key ในโค้ด
-- API_DEPLOYMENT_ID เป็น GitHub Actions variable ระบุ ID ของ API executable (ไม่ใช่ URL เว็บ /exec)
-- Build ที่ไม่ตั้ง ID แสดงหน้าว่ายังไม่ตั้งค่าการเชื่อมต่อ ไม่บันทึกข้อมูลจำลอง
-- Debug signing key สร้างใหม่ต่อ runner; ต้องลงทะเบียน SHA-1 ของ APK ที่ทดสอบ และถอนติดตั้งก่อนลง build ที่ใช้ key ต่างกัน ห้ามใช้เป็นคีย์เผยแพร่จริง
+## ใช้งาน
+1. ติดตั้ง APK รุ่น offline บน Android 8 ขึ้นไป สร้างโปรไฟล์
+2. อนุญาตรูปทั้งหมดเพื่อให้ตรวจภาพได้ครบ หากเลือกเฉพาะบางรูปจะตรวจได้เฉพาะที่อนุญาต
+3. แตะ 🧾 ด้านบนเพื่อดูสลิปที่พบ ตรวจยอด วันที่ และยืนยันว่าเป็นรายจ่ายก่อนบันทึก OCR ไม่บันทึกเงินเอง
+4. ทุกครั้งที่กลับเข้าแอปจะตรวจคลังภาพเดือนปัจจุบันตามวันที่ถ่าย (หรือวันที่เพิ่มรูปเมื่อไม่มีวันที่ถ่าย) เวลาไทย แคช OCR ของรูปที่ไม่เปลี่ยนเพื่อลดเวลา มีปุ่มหยุด
+5. โปรไฟล์ → สำรอง JSON พร้อมรูป ก่อนถอนติดตั้ง/ล้างข้อมูล/ย้ายเครื่อง นำเข้าจะแทนข้อมูลทั้งหมด ไม่มี cloud sync
 
-## การสร้าง
-JDK 17, Android SDK 35, Gradle 8.11.1: gradle :app:assembleDebug :app:lintDebug -PapiDeploymentId=ID
-GitHub Actions → Build Android APK → Artifacts → monthly-finance-android-test
+## ข้อจำกัดที่ต้องรู้
+- รุ่นทดสอบ ต้องตรวจบนโทรศัพท์จริง โดยเฉพาะสิทธิ์รูป Android แต่ละรุ่น การส่งออก และ OCR สลิปธนาคารจริง ยังไม่มีผลทดสอบความแม่นยำจากรูปผู้ใช้
+- OCR Tesseract ไทย+อังกฤษอ่านผิดได้ ภาพเล็ก เบลอ เอียง อาจพลาด ต้องตรวจทาน ไม่ใช่การยืนยันธุรกรรมกับธนาคาร
+- สแกนเฉพาะภาพที่อยู่ในเครื่องและระบบ MediaStore เห็น ไม่ดาวน์โหลดภาพที่มีแต่ใน cloud ไม่รองรับ PDF
+- ภาพสลิปเก่าที่มีวันที่ภาพอยู่นอกเดือนปัจจุบันไม่อยู่ในการตรวจอัตโนมัติ เลือกอ่านเองได้ครั้งละ 5 ภาพ
+- ภาพเดิมที่เคยบันทึก/ข้ามไม่เสนอซ้ำ ตรวจซ้ำด้วย SHA-256 ของไฟล์ต้นฉบับ ภาพที่แก้ไขหรือบีบอัดใหม่อาจถูกเสนอซ้ำ และการเลือกอ่านเองต้องตรวจรายการซ้ำ
+- สแกนครั้งแรกอาจช้า/กินแบตเมื่อรูปมาก งาน OCR ทำทีละรูป หยุดได้เมื่อจบรูปที่กำลังอ่าน ไม่มีงานสแกนตามเวลาเมื่อปิดแอป
+- Android 8–8.1 ภาพ JPEG ที่มี EXIF หมุนอาจอ่านไม่แม่น ให้หมุนแล้วบันทึกรูปใหม่; รุ่นใหม่ถอดรหัสตามทิศภาพ
+- รายการประจำตรวจเมื่อเปิดแอป เป็นรอยืนยัน สูงสุด 100 รายการต่อรอบ แจ้งเตือนภายในแอปเท่านั้น
+- ไฟล์สำรอง JSON ไม่เข้ารหัส เก็บในที่ส่วนตัว ไม่เกิน 50 MB; ฐานข้อมูลจำกัดประวัติคำขอ 20,000 เหตุการณ์ รุ่นนี้ยังไม่มี PIN/biometric
+- ข้อมูลเว็บเดิมไม่ย้ายให้อัตโนมัติ APK ใช้ package แยก th.monthlyfinance.offline
+- APK เป็น debug build คีย์ลงนามอาจเปลี่ยนระหว่าง build ต้องสำรองก่อนถอนติดตั้งรุ่นเดิม ยังไม่ใช่ Play Store release
 
-## ตั้ง Google
-1. ใช้ Cloud project เดียวกันทั้ง Apps Script และ Android OAuth; เปิด Apps Script API
-2. Android OAuth: package th.monthlyfinance.app, SHA-1 จาก signing-fingerprint.txt ของ build ที่จะติดตั้ง
-3. เพิ่ม backend/Android.gs และปรับ installTrigger_ ใน Code.gs ตาม backend/Code.gs (รักษา UserProperties และฐานข้อมูลเดิม)
-4. Deploy → API executable → ตั้งผู้เข้าถึงตามกลุ่มทดสอบ และตั้ง API_DEPLOYMENT_ID
-5. ผู้ใช้กดอนุญาตด้วยบัญชีของตัวเอง ทดสอบบัญชี A/B ว่าไม่เห็นข้อมูลข้ามกันก่อนเผยแพร่
+## สร้างและตรวจ
+JDK17, Android SDK35, Gradle8.11.1, Node20+:
+```
+npm install --no-save --ignore-scripts fake-indexeddb@6.0.0
+node tests/offline.cjs
+node tools/models.cjs
+gradle --no-daemon :app:assembleDebug :app:lintDebug
+python3 tools/apk-check.py
+```
+โมเดลภาษาดาวน์โหลดตอน build เท่านั้นจาก tesseract-ocr/tessdata_fast tag 4.1.0 และรวมใน APK
+GitHub Actions สร้าง artifact monthly-finance-offline-apk พร้อม SHA256SUMS.txt และรายงาน lint
 
-## ข้อจำกัด
-ต้องออนไลน์เพื่ออ่าน/เขียน; ไม่มีฐานข้อมูล offline หรือ push background; ไม่มี Claude/OCR; รองรับแนบรูปและกรอกเอง
-Apps Script API สร้าง trigger ไม่ได้: Android ตรวจรายการประจำเมื่อโหลดข้อมูล หากต้องการทำทุกวันขณะปิดแอปให้ตั้ง trigger ผ่านเว็บเดิม
-ยังต้องทดสอบ Google authorization, ความเป็นเจ้าของ Sheets, การแนบรูป/ส่งออก และการกลับเข้าแอปบนอุปกรณ์จริง
-OAuth อาจต้อง Google verification ก่อนเปิดให้คนทั่วไป; APK ทดสอบยังไม่ใช่ Play Store release
-
-## ความเป็นส่วนตัว
-เก็บข้อมูลใน Sheets/Drive ตามบัญชีผู้ใช้; ไม่ส่งข้อมูลการเงินไป GitHub; ไม่บันทึก token ลงไฟล์หรือส่งให้หน้าเว็บ; APK ปิด Android backup
-โค้ด backend ใช้สิทธิ์ Drive และ Sheets ตามเว็บเดิม ผู้ใช้ควรอ่านหน้าความยินยอม Google ก่อนอนุญาต
-
-## ทดสอบก่อนใช้งานจริง
-ทดสอบด้วยรายการจำลองในบัญชีทดสอบ: สร้าง/แก้/ลบรายการ, จ่ายหนี้บางส่วน/งวดสุดท้าย, กรองประเภทหนี้, งบ, โหลดซ้ำหลังเครือข่ายขาด, การส่งออก JSON/CSV, รูปโปรไฟล์, สลิปหลายรูป และการแยกผู้ใช้สองบัญชี
+## ส่วนประกอบและสิทธิ์ใช้งาน
+Tesseract4Android 4.9.0: https://github.com/adaptech-cz/Tesseract4Android (Apache-2.0 พร้อมส่วนประกอบตาม notices ของโครงการ)
+โมเดล tessdata_fast 4.1.0: https://github.com/tesseract-ocr/tessdata_fast/tree/4.1.0 (Apache-2.0; LICENSE รวมกับ assets)
+AndroidX: https://source.android.com/docs/setup/about/licenses (Apache-2.0)
+fake-indexeddb ใช้เฉพาะทดสอบ ไม่รวมใน APK: https://github.com/dumbmatter/fakeIndexedDB
