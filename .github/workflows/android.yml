@@ -26,8 +26,9 @@ jobs:
         run: node materialize.cjs
       - name: Test offline persistence and parser
         run: |
-          npm install --no-save --ignore-scripts fake-indexeddb@6.0.0
+          npm install --no-save --ignore-scripts fake-indexeddb@6.0.0 jsdom@22.1.0
           node tests/offline.cjs
+          node tests/ui.cjs
       - name: Bundle offline OCR languages
         run: node tools/models.cjs
       - name: Build and lint APK
