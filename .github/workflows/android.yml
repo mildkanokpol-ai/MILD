@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Offline Android APK
 on:
   push:
     branches: [main]
@@ -8,7 +8,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: android
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -18,33 +21,32 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: Prepare Android project
+      - name: Prepare source
+        working-directory: .
         run: node materialize.cjs
-      - name: Verify source
-        working-directory: android
+      - name: Test offline persistence and parser
         run: |
-          node tools/check.cjs
-          node tests/android-isolation.cjs
-      - name: Build test APK
-        working-directory: android
-        env:
-          API_DEPLOYMENT_ID: ${{ vars.API_DEPLOYMENT_ID }}
-        run: gradle --no-daemon :app:assembleDebug :app:lintDebug -PapiDeploymentId="$API_DEPLOYMENT_ID"
-      - name: Signing fingerprint
-        working-directory: android
+          npm install --no-save --ignore-scripts fake-indexeddb@6.0.0
+          node tests/offline.cjs
+      - name: Bundle offline OCR languages
+        run: node tools/models.cjs
+      - name: Build and lint APK
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+      - name: Verify offline APK
         run: |
+          python3 tools/apk-check.py
           gradle --no-daemon :app:signingReport > signing-fingerprint.txt
           sha256sum app/build/outputs/apk/debug/app-debug.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: monthly-finance-android-test
+          name: monthly-finance-offline-apk
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/signing-fingerprint.txt
             android/SHA256SUMS.txt
-          retention-days: 14
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-check-reports
+          name: offline-check-reports
           path: android/app/build/reports/
