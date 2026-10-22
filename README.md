@@ -1,4 +1,4 @@
-# บัญชีรายเดือน — Android ออฟไลน์ 0.2
+# บัญชีรายเดือน — Android ออฟไลน์ 0.3
 
 ข้อมูลรายรับรายจ่าย งบ หนี้ รายการประจำ โปรไฟล์ และรูปแนบอยู่ในเครื่อง ไม่ใช้ Gmail, Google Sheets, Claude หรือเซิร์ฟเวอร์ ไม่มีสิทธิ์ INTERNET ใน APK
 
@@ -39,3 +39,4 @@ Tesseract4Android 4.9.0: https://github.com/adaptech-cz/Tesseract4Android (Apach
 โมเดล tessdata_fast 4.1.0: https://github.com/tesseract-ocr/tessdata_fast/tree/4.1.0 (Apache-2.0; LICENSE รวมกับ assets)
 AndroidX: https://source.android.com/docs/setup/about/licenses (Apache-2.0)
 fake-indexeddb ใช้เฉพาะทดสอบ ไม่รวมใน APK: https://github.com/dumbmatter/fakeIndexedDB
+`nรุ่น 0.3: ปรับขอบจอด้วย WindowInsets ที่กรอบครอบ WebView เพิ่มปุ่มสแกนหน้าแรกและแสงเคลื่อนไหว รายการที่มีข้อความเงินออกชัดเจนพร้อมยอดที่มีป้ายกำกับ วันที่และเวลาครบ จะบันทึกอัตโนมัติ รูปที่ไม่ชัดรอตรวจ และคัดเดือนจากวันที่ธุรกรรมอีกชั้น รายการอัตโนมัติยังไม่คัดลอกรูปต้นฉบับเข้าแฟ้มแนบ โปรดเก็บรูปในอัลบั้มไว้
